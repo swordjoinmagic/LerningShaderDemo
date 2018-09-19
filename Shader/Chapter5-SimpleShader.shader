@@ -4,11 +4,17 @@
 
 Shader "Unity Shaders Book/Chpater 5/Simple Shader" {
 	Properties {
-		
+		// 声明一个Color类型的属性
+		_Color ("Color Tint",Color) = (0, 0, 0, 0)
 	}
 	SubShader {
 		Pass {
 			CGPROGRAM
+
+				// 获得属性中的_Color变量
+				fixed4 _Color;
+
+				// 声明顶点着色器函数vert和片元着色器函数frag
 				#pragma vertex vert
 				#pragma fragment frag
 
@@ -48,9 +54,14 @@ Shader "Unity Shaders Book/Chpater 5/Simple Shader" {
 				}
 
 				
-				fixed4 frag() : SV_TARGET{
+				fixed4 frag(v2f i) : SV_TARGET{
+					fixed3 c = i.color;
+
+					// 使用_Color属性来控制输出的颜色
+					c *= _Color.rgb;
+
 					// 将插值之后的i.color显示到屏幕上
-					return fixed4(1.0,1.0,1.0,1.0);
+					return fixed4(c,1.0);
 				}
 
 			ENDCG
