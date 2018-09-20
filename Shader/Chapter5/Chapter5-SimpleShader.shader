@@ -2,7 +2,7 @@
 
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Unity Shaders Book/Chpater 5/Simple Shader" {
+Shader "Unity Shaders Book/Chapter 5/Simple Shader" {
 	Properties {
 		// 声明一个Color类型的属性
 		_Color ("Color Tint",Color) = (0, 0, 0, 0)
@@ -43,8 +43,18 @@ Shader "Unity Shaders Book/Chpater 5/Simple Shader" {
 				v2f vert(a2v v){
 					// 声明输出结构
 					v2f o;
+
+					float4x4 a = (
+						1,0,0,0,
+						0,1,0,0,
+						0,0,1,0,
+						0,0,0,1
+					);
+
 					// 使用v.vertex来访问模型空间的顶点坐标
+					float4 position = mul(a,v.vertex);
 					o.pos = UnityObjectToClipPos(v.vertex);
+					
 					// v.normal包含了顶点的法线方向,其分量范围在[-1.0,1.0],
 					// 下面的代码把分量范围映射到了[0.0,1.0],
 					// 存储到o.color中传递给片元着色器
