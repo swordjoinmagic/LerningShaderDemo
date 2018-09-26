@@ -34,7 +34,7 @@ Shader "Unity Shaders Book/Chapter 6/Specular Pixel-Level" {
                     // 世界坐标下的顶点法线
                     float3 worldNormal : TEXCOORD0;
                     // 世界坐标下的物体顶点位置
-                    float4 worldPos : TEXCOORD1;
+                    float4 worldPos : TEXCOORD1; 
                 };
 
                 float _Gloss;
@@ -48,7 +48,8 @@ Shader "Unity Shaders Book/Chapter 6/Specular Pixel-Level" {
                     o.pos = UnityObjectToClipPos(v.vertex);
 
                     // 获得世界坐标下的单位向量法线
-                    o.worldNormal = mul(v.normal,(float3x3)unity_WorldToObject);
+                    // o.worldNormal = mul(v.normal,(float3x3)unity_WorldToObject);
+                    o.worldNormal = mul((float3x3)unity_ObjectToWorld,v.normal);
 
                     // 将世界坐标下的顶点位置赋给worldPos
                     o.worldPos = mul(unity_ObjectToWorld,v.vertex);
