@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
 
-Shader "Unity Shaders Book/Chpater 6/DiffusePixelLevel" {
+Shader "Unity Shaders Book/Chapter 6/DiffusePixelLevel" {
 	Properties {
 		// 得到材质的漫反射颜色
 		_Diffuse("Diffuse",Color) = (1, 1, 1, 1)

@@ -1,7 +1,7 @@
 ﻿// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Unity Shaders Book/Chpater 6/DiffuseVertexLevel" {
+Shader "Unity Shaders Book/Chapter 6/DiffuseVertexLevel" {
 	Properties {
 		// 得到材质的漫反射颜色
 		_Diffuse("Diffuse",Color) = (1, 1, 1, 1)
