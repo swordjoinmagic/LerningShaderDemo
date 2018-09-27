@@ -78,7 +78,7 @@ Shader "Unity Shaders Book/Chapter 7/Single Texture" {
 
                     // 获得观察方向
                     fixed3 viewDir = normalize(UnityWorldSpaceViewDir(v.worldPos));
-                    // 获得binlinn-phong模型的half矢量
+                    // 获得blinn-phong模型的half矢量
                     fixed3 halfDir = normalize(worldLightDir+viewDir);
                     // 获得高光反射
                     fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(saturate(dot(worldNormal,halfDir)),_Gloss);
