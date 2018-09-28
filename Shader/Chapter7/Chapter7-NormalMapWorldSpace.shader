@@ -1,6 +1,7 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Unity Shaders Book/Chapter 7/NormalMapTangentSpace" {
+// 在世界坐标空间下计算光照
+Shader "Unity Shaders Book/Chapter 7/NormalMapWorldSpace" {
     Properties {
         // 用于控制物体的整体颜色
         _Color("Color Tint",Color) = (1, 1, 1, 1)
@@ -47,66 +48,57 @@ Shader "Unity Shaders Book/Chapter 7/NormalMapTangentSpace" {
                   float4 tangent : TANGENT;
                   float4 texcoord : TEXCOORD0;
                 };
-
                 // 定义顶点着色器的输出
                 struct v2f{
                     float4 pos : SV_POSITION;
                     float4 uv : TEXCOORD0;
                     
-                    // 这里使用float3的原因是，单位矢量的齐次坐标的第四个分量w为0，
-                    // 简单来说就是对于单位矢量来说，有没有第四个分量都ok，所以这里
-                    // 变成float3
-                    float3 lightDir : TEXCOORD1; // 在切线空间下的光源方向
-                    float3 viewDir : TEXCOORD2; // 在切线控件下的观察方向
+                    // 对于矩阵变量,需要将其按行拆分成多个变量再进行存储
+                    float4 TtoW0 : TEXCOORD1;
+                    float4 TtoW1 : TEXCOORD2;
+                    float4 TtoW2 : TEXCOORD3;
                 };
 
                 v2f vert(a2v v){
                     v2f o;
-
-                    // 必备事件之一：变换顶点位置到裁剪空间下
                     o.pos = UnityObjectToClipPos(v.vertex);
 
-                    // 使用uv变量的前两格（xy）来保存该材质纹理的缩放以及偏移属性
                     o.uv.xy = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-                    // 使用uv变量的后两格（zw）来保存法线纹理的缩放以及偏移属性
                     o.uv.zw = v.texcoord.xy * _BumpMap_ST.xy + _BumpMap_ST.zw;
 
-                    //===================================
-                    // 计算 模型-切线 变换矩阵
+                    // 将顶点变换到世界坐标空间下
+                    float3 worldPos = mul(unity_ObjectToWorld,v.vertex).xyz;
+                    // 将法线变换到世界坐标空间下
+                    fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);
+                    // 将切线变换到世界坐标空间下
+                    fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
+                    // 计算副切线
+                    fixed3 worldBinormal = cross(worldNormal,worldTangent)*v.tangent.w;
 
-                    // 此处计算副切线
-                    // 副切线由法线及顶点的切线方向叉积得到,切线的w分量决定了副切线的方向
-                    float3 binormal = cross(normalize(v.normal),normalize(v.tangent.xyz)) * v.tangent.w;
-                    // 获得该变换矩阵
-                    float3x3 rotation = float3x3(
-                        v.tangent.xyz,
-                        binormal,
-                        v.normal
-                    );
-
-                    // 将在模型空间下的光源方向转变为切线空间
-                    o.lightDir = mul(rotation,ObjSpaceLightDir(v.vertex)).xyz;
-                    o.viewDir = mul(rotation,ObjSpaceViewDir(v.vertex)).xyz;
+                    // 获得 切线-世界坐标 变换矩阵
+                    o.TtoW0 = float4(worldTangent.x,worldBinormal.x,worldNormal.x,worldPos.x);
+                    o.TtoW1 = float4(worldTangent.y,worldBinormal.y,worldNormal.y,worldPos.y);
+                    o.TtoW2 = float4(worldTangent.z,worldBinormal.z,worldNormal.z,worldPos.z);
 
                     return o;
                 }
 
                 fixed4 frag(v2f i) : SV_TARGET{
-                    // 获得在切线空间下的光源方向以及观察方向
-                    fixed3 tangentLightDir = normalize(i.lightDir);
-                    fixed3 tangentViewDir = normalize(i.viewDir);
+                    // 获得世界坐标下的顶点坐标
+                    float3 worldPos = float3(i.TtoW0.w, i.TtoW1.w, i.TtoW2.w);                        
+                    // 计算世界坐标下的法线和光源方向
+                    fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));
+                    fixed3 viewDir = normalize(UnityWorldSpaceViewDir(worldPos));
 
-                    // 获得法线纹理中的纹素
-                    fixed4 packedNormal = tex2D(_BumpMap,i.uv.zw);
+                    // 计算在切线空间下的切线坐标
+                    fixed3 bump = UnpackNormal(tex2D(_BumpMap,i.uv.zw));
+                    bump.xy *= _BumpScale;
+                    bump.z = sqrt(1.0 - saturate(dot(bump.xy,bump.xy)));
 
-                    // 在切线空间下的法线
-                    fixed3 tangentNormal;
-
-                    // 将纹素解包变成法线
-                    tangentNormal = UnpackNormal(packedNormal);
-                    tangentNormal.xy *= _BumpScale;
-                    // 因为tangentNormal是单位矢量，所以已知xy，可以根据xy计算得到z分量，即x²+y²+z²=1
-                    tangentNormal.z = sqrt(1.0-saturate(dot(tangentNormal.xy,tangentNormal.xy)));
+                    // 将切线变换到世界坐标下
+                    bump = normalize(
+                        half3( dot(i.TtoW0.xyz,bump) , dot(i.TtoW1.xyz,bump) , dot(i.TtoW2.xyz,bump))
+                    );
 
                     // 获得材质反射率（相当于根据纹理给材质上色的那个颜色？）
                     fixed3 albedo = tex2D(_MainTex,i.uv).rgb * _Color.rgb;
@@ -118,16 +110,17 @@ Shader "Unity Shaders Book/Chapter 7/NormalMapTangentSpace" {
                     fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;
 
                     // 计算漫反射光照
-                    fixed3 diffuse = _LightColor0.rgb * albedo * max(0,dot(tangentNormal,tangentLightDir));
+                    fixed3 diffuse = _LightColor0.rgb * albedo * max(0,dot(bump,lightDir));
 
                     // 计算bline-phong模型的half矢量
-                    fixed3 haltDir = normalize(tangentLightDir+tangentViewDir);
+                    fixed3 haltDir = normalize(lightDir+viewDir);
 
                     // 计算高光反射光照
-                    fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0,dot(tangentNormal,haltDir)),_Gloss);
+                    fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0,dot(bump,haltDir)),_Gloss);
 
                     return fixed4(ambient+diffuse+specular,1.0);
                 }
+ 
             ENDCG
         }
     }
