@@ -109,7 +109,7 @@ Shader "Unity Shaders Book/Chapter 7/NormalMapTangentSpace" {
                     tangentNormal.z = sqrt(1.0-saturate(dot(tangentNormal.xy,tangentNormal.xy)));
 
                     // 获得材质反射率（相当于根据纹理给材质上色的那个颜色？）
-                    fixed3 albedo = tex2D(_MainTex,i.uv).rgb * _Color.rgb;
+                    fixed3 albedo = tex2D(_MainTex,i.uv.xy).rgb * _Color.rgb;
 
                     //======================================================
                     // 下面计算标准光照模型
