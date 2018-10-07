@@ -52,7 +52,7 @@ Shader "Unity Shaders Book/Chapter 8/AlphaTest" {
                     o.pos = UnityObjectToClipPos(v.vertex);
 
                     // 获得法线
-                    o.worldNormal = UnityObjectToWorldNormal(v.vertex);
+                    o.worldNormal = UnityObjectToWorldNormal(v.normal);
 
                     // 获得世界坐标下的顶点
                     o.worldPos = mul(unity_ObjectToWorld,v.vertex);

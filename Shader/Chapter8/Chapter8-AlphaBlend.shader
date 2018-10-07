@@ -50,7 +50,7 @@ Shader "Unity Shaders Book/Chapter 8/AlphaBlend" {
 
                     o.pos = UnityObjectToClipPos(v.vertex);
 
-                    o.worldNormal = UnityObjectToWorldNormal(v.vertex);
+                    o.worldNormal = UnityObjectToWorldNormal(v.normal);
                     o.worldPos = mul(unity_ObjectToWorld,v.vertex);
                     o.uv =  v.uv * _MainTex_ST.xy + _MainTex_ST.zw;
 
