@@ -158,7 +158,7 @@ Shader "Unity Shaders Book/Chapter 9/AttenuationAndShadowUseBuildInFunctions" {
             ENDCG
         }
     }
-
+ 
     FallBack "Diffuse"
     
 }
