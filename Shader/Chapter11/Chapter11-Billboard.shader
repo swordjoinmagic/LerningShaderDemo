@@ -61,6 +61,7 @@ Shader "Unity Shaders Book/Chapter 11/Billboard" {
                     normalDir.y = normalDir.y * _VerticalBillboarding;
                     normalDir = normalize(normalDir);
 
+                    // 防止upDir和法线平行
                     float3 upDir = abs(normalDir.y) > 0.999 ? float3(0,0,1) : float3(0,1,0);
                     float3 rightDir = normalize(cross(upDir,normalDir));
                     upDir = normalize(cross(normalDir,rightDir));
