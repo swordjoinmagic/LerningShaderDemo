@@ -139,13 +139,13 @@ Shader "Unity Shaders Book/Chapter 14/ToonShading" {
                     fixed diff = dot(worldNormal,worldLightDir);
                     // 应用半兰伯特模型
                     diff = (diff*0.5+0.5) * atten;
-
+  
                     fixed3 diffuse = _LightColor0.rgb * albedo * tex2D(_Ramp,float2(diff,diff)).rgb;
 
                     fixed spec = dot(worldNormal,worldHalfDir);
                     fixed w = fwidth(spec) * 2.0;
 
-                    fixed3 specular = _Specular.rgb * lerp(0,1,smoothstep(-w,w,spec+_SpecularScale-1)) * step(0.0001,_SpecularScale);
+                    fixed3 specular = _Specular.rgb * smoothstep(-w,w,spec+_SpecularScale-1) * step(0.0001,_SpecularScale);
 
                     return fixed4(ambient+diffuse+specular,1.0);
                     
