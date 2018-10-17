@@ -129,6 +129,7 @@ Shader "SJM/Burn Noise" {
 
                     fixed t = 1 - smoothstep(0.0,_LineWidth,burn.r - _BurnAmount);
                     fixed3 burnColor = lerp(_BurnFirstColor,_BurnSecondColor,t);
+                    burnColor = pow(burnColor,5);
 
                     // 计算漫反射
                     fixed3 diffuse = _LightColor0.rgb * albedo * max(0,dot(worldNormal,worldLightDir));
@@ -142,7 +143,45 @@ Shader "SJM/Burn Noise" {
                 }
 
             ENDCG
-        }        
+        }
+
+        // 用于投射阴影的Pass
+        Pass{
+            Tags{ "LightMode" = "ShadowCaster" }
+            CGPROGRAM
+                #pragma vertex vert
+                #pragma fragment frag
+
+                #pragma multi_compile_shadowcaster
+
+                #include "UnityCG.cginc"
+
+                sampler2D _BurnMap;
+                float4 _BurnMap_ST;
+                fixed _BurnAmount;
+
+                struct v2f{
+                    float4 pos : SV_POSITION;
+                    float2 uvBurnMap : TEXCOORD0;
+                };
+                
+                v2f vert(appdata_base v){
+                    v2f o;
+                    TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
+
+                    o.uvBurnMap = TRANSFORM_TEX(v.texcoord,_BurnMap);
+
+                    return o;
+                }
+
+                fixed4 frag(v2f i) : SV_TARGET{
+                    fixed3 burn = tex2D(_BurnMap,i.uvBurnMap);
+                    clip(burn.r - _BurnAmount);
+                    SHADOW_CASTER_FRAGMENT(i);
+                }
+
+            ENDCG
+        }
     }
     FallBack "Diffuse"
     

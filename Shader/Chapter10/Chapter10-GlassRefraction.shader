@@ -64,7 +64,7 @@ Shader "Unity Shaders Book/Chapter 10/GlassRefraction" {
 
                     o.pos = UnityObjectToClipPos(v.vertex);
 
-                    // 得到对应被抓取的屏幕图像的采样坐标,也就是当前坐标点在屏幕图像上表现的像素 的 坐标
+                    // 得到对应被抓取的屏幕图像的采样坐标,也就是当前坐标点在 屏幕图像上表现的像素 的 坐标
                     o.scrPos = ComputeGrabScreenPos(o.pos);
 
                     // 获得变化后的主纹理,法线纹理uv坐标
